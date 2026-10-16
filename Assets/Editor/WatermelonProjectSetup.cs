@@ -175,68 +175,61 @@ public static class WatermelonProjectSetup
 
     private static void CreateGrowthModule(GameObject module, out WatermelonGrowthController growth)
     {
-        CreateText("GrowthGuide", module.transform, "一颗西瓜，从种子到成熟果实的四步旅程", 20, new Color32(92, 111, 96, 255), new Vector2(0, 258), new Vector2(1000, 42), TextAnchor.MiddleCenter, FontStyle.Normal);
-        GameObject timeline = CreateImage("GrowthTimeline", module.transform, new Color32(250, 244, 218, 255), new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-360, -45), new Vector2(760, 500)));
-        AddOutline(timeline, new Color32(230, 214, 170, 255), 3f);
-        GameObject line = CreateImage("TimelineLine", timeline.transform, WatermelonGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -30), new Vector2(620, 8)));
-        line.transform.SetAsFirstSibling();
+        CreateText("GrowthGuide", module.transform, "一颗西瓜，从种子到成熟果实的四步旅程", 20, new Color32(92, 111, 96, 255), new Vector2(0, 252), new Vector2(900, 42), TextAnchor.MiddleCenter, FontStyle.Normal);
 
-        string[] stages = { "种子萌发", "幼苗生长", "开花授粉", "果实成熟" };
+        // Left: four-stage navigation card
+        GameObject navCard = CreateImage("StageNavCard", module.transform, White, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-520, -100), new Vector2(400, 640)));
+        AddOutline(navCard, new Color32(232, 220, 190, 255), 3f);
+        CreateText("NavHeader", navCard.transform, "生长阶段", 24, DeepGreen, new Vector2(0, 245), new Vector2(300, 45), TextAnchor.MiddleCenter, FontStyle.Bold);
+
+        string[] stages = { "种子萌发", "幼苗生长", "开花授粉", "果实发育与成熟" };
         Button[] buttons = new Button[4];
-        GameObject[] visuals = new GameObject[4];
+        float[] navRows = { 165f, 65f, -35f, -135f };
         for (int i = 0; i < 4; i++)
         {
-            float x = -270 + i * 180;
-            GameObject node = CreateImage("StageNode_" + i, timeline.transform, i == 0 ? FleshRed : PaleGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(x, -30), new Vector2(46, 46)));
-            AddOutline(node, DeepGreen, 3f);
-            CreateText("StageNodeNumber", node.transform, "0" + (i + 1), 16, i == 0 ? White : DeepGreen, Vector2.zero, new Vector2(45, 45), TextAnchor.MiddleCenter, FontStyle.Bold);
-            buttons[i] = CreateButton("StageButton_" + i, timeline.transform, stages[i], i == 0 ? FleshRed : PaleGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(x, -105), new Vector2(150, 52)), 17, i == 0 ? White : DeepGreen).GetComponent<Button>();
-            visuals[i] = CreateGrowthVisual("StageVisual_" + i, timeline.transform, i, new Vector2(x, 110));
+            buttons[i] = CreateButton("StageButton_" + i, navCard.transform, "0" + (i + 1) + "   " + stages[i], i == 0 ? FleshRed : PaleGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, navRows[i]), new Vector2(330, 84)), 20, i == 0 ? White : DeepGreen).GetComponent<Button>();
         }
-        Text stageNumber = CreateText("StageNumber", module.transform, "01", 46, FleshRed, new Vector2(160, 205), new Vector2(120, 65), TextAnchor.MiddleCenter, FontStyle.Bold).GetComponent<Text>();
-        Text stageTitle = CreateText("StageTitle", module.transform, "种子萌发", 36, DeepGreen, new Vector2(400, 205), new Vector2(400, 65), TextAnchor.MiddleLeft, FontStyle.Bold).GetComponent<Text>();
-        Text stageBody = CreateText("StageBody", module.transform, "", 20, Ink, new Vector2(400, 83), new Vector2(460, 155), TextAnchor.UpperLeft, FontStyle.Normal).GetComponent<Text>();
-        Text selectedHint = CreateText("SelectedHint", module.transform, "已选择阶段：种子萌发", 16, new Color32(92, 111, 96, 255), new Vector2(400, -215), new Vector2(460, 35), TextAnchor.MiddleLeft, FontStyle.Normal).GetComponent<Text>();
+        Text selectedHint = CreateText("SelectedHint", navCard.transform, "已选择阶段：种子萌发", 17, new Color32(92, 111, 96, 255), new Vector2(0, -240), new Vector2(340, 80), TextAnchor.MiddleCenter, FontStyle.Normal).GetComponent<Text>();
+
+        // Right: main stage display card
+        GameObject displayCard = CreateImage("StageDisplayCard", module.transform, PaleGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(330, -100), new Vector2(1000, 640)));
+        AddOutline(displayCard, new Color32(189, 221, 171, 255), 3f);
+
+        Text stageNumber = CreateText("StageNumber", displayCard.transform, "01", 42, FleshRed, new Vector2(-430, 245), new Vector2(100, 50), TextAnchor.MiddleCenter, FontStyle.Bold).GetComponent<Text>();
+        Text stageTitle = CreateText("StageTitle", displayCard.transform, stages[0], 40, DeepGreen, new Vector2(-160, 245), new Vector2(420, 50), TextAnchor.MiddleLeft, FontStyle.Bold).GetComponent<Text>();
+        Text progressText = CreateText("ProgressText", displayCard.transform, "阶段 1 / 4", 20, new Color32(92, 111, 96, 255), new Vector2(320, 247), new Vector2(250, 45), TextAnchor.MiddleRight, FontStyle.Normal).GetComponent<Text>();
+
+        Sprite[] stageSprites =
+        {
+            EnsureSprite("Assets/Art/growth_stage1_germination.png"),
+            EnsureSprite("Assets/Art/growth_stage2_seedling.png"),
+            EnsureSprite("Assets/Art/growth_stage3_flowering.png"),
+            EnsureSprite("Assets/Art/growth_stage4_mature.jpg")
+        };
+
+        GameObject stageImage = CreateImage("StageImage", displayCard.transform, White, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 55), new Vector2(790, 300)));
+        stageImage.AddComponent<CanvasGroup>();
+        Image stageImageComponent = stageImage.GetComponent<Image>();
+        stageImageComponent.sprite = stageSprites[0];
+        stageImageComponent.preserveAspect = true;
+
+        Text stageBody = CreateText("StageBody", displayCard.transform, "", 20, Ink, new Vector2(0, -165), new Vector2(880, 90), TextAnchor.UpperLeft, FontStyle.Normal).GetComponent<Text>();
+
+        Button prevButton = CreateButton("PrevStageButton", displayCard.transform, "‹  上一阶段", DeepGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-210, -255), new Vector2(210, 58)), 20, White).GetComponent<Button>();
+        Button nextButton = CreateButton("NextStageButton", displayCard.transform, "下一阶段  ›", DeepGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(210, -255), new Vector2(210, 58)), 20, White).GetComponent<Button>();
+
         growth = module.AddComponent<WatermelonGrowthController>();
         growth.stageButtons = buttons;
-        growth.stageVisuals = visuals;
+        growth.prevStageButton = prevButton;
+        growth.nextStageButton = nextButton;
+        growth.stageImage = stageImageComponent;
+        growth.stageImageGroup = stageImage.GetComponent<CanvasGroup>();
+        growth.stageSprites = stageSprites;
         growth.stageNumber = stageNumber;
         growth.stageTitle = stageTitle;
         growth.stageBody = stageBody;
+        growth.progressText = progressText;
         growth.selectedHint = selectedHint;
-    }
-
-    private static GameObject CreateGrowthVisual(string name, Transform parent, int index, Vector2 position)
-    {
-        GameObject visual = CreateImage(name, parent, new Color32(255, 255, 255, 210), new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), position, new Vector2(145, 110)));
-        AddOutline(visual, new Color32(226, 220, 190, 255), 2f);
-        if (index == 0)
-        {
-            CreateImage("Soil", visual.transform, new Color32(146, 105, 67, 255), new RectSpec(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, -42), new Vector2(125, 30)));
-            CreateSeed(visual.transform, new Vector2(0, -15), 0f);
-        }
-        else if (index == 1)
-        {
-            CreateImage("Stem", visual.transform, WatermelonGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -5), new Vector2(12, 65)));
-            CreateImage("LeafA", visual.transform, PaleGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-25, 18), new Vector2(54, 26)));
-            CreateImage("LeafB", visual.transform, PaleGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(25, 2), new Vector2(54, 26)));
-        }
-        else if (index == 2)
-        {
-            CreateImage("FlowerStem", visual.transform, WatermelonGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -12), new Vector2(12, 75)));
-            for (int petal = 0; petal < 5; petal++)
-            {
-                float angle = petal * 72f * Mathf.Deg2Rad;
-                CreateImage("Petal", visual.transform, new Color32(255, 220, 92, 255), new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(Mathf.Cos(angle) * 24f, 25 + Mathf.Sin(angle) * 24f), new Vector2(24, 34)));
-            }
-        }
-        else
-        {
-            GameObject fruit = CreateImage("Fruit", visual.transform, FleshRed, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -4), new Vector2(86, 62)));
-            AddOutline(fruit, DeepGreen, 3f);
-            CreateImage("FruitLeaf", visual.transform, WatermelonGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-34, 37), new Vector2(45, 18)));
-        }
-        return visual;
     }
 
     private static void CreateNutritionModule(GameObject module, out WatermelonNutritionController nutrition)
@@ -283,7 +276,7 @@ public static class WatermelonProjectSetup
         Undo.RegisterCreatedObjectUndo(eventSystem, "Create EventSystem");
     }
 
-    private static void AssignSprite(GameObject go, string assetPath)
+    private static Sprite EnsureSprite(string assetPath)
     {
         AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
         TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
@@ -317,6 +310,12 @@ public static class WatermelonProjectSetup
                 AssetDatabase.SaveAssets();
             }
         }
+        return sprite;
+    }
+
+    private static void AssignSprite(GameObject go, string assetPath)
+    {
+        Sprite sprite = EnsureSprite(assetPath);
         Image image = go.GetComponent<Image>();
         image.sprite = sprite;
         image.preserveAspect = true;
