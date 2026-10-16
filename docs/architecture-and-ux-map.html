@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>西瓜小课堂 · 项目架构图与用户体验地图</title>
+<style>
+  :root {
+    --bg: #1a1b18;
+    --surface: #232520;
+    --surface2: #2c2e28;
+    --border: #3a3d35;
+    --text: #e8e6dd;
+    --text-dim: #a9a89e;
+    --text-faint: #7d7c73;
+    --green: #97c459;
+    --green-deep: #639922;
+    --red: #ef6f5e;
+    --amber: #ef9f27;
+    --blue: #85b7eb;
+    --teal: #5dcaa5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    padding: 40px 24px 64px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  header.doc {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+    margin-bottom: 32px;
+  }
+  header.doc .kicker { color: var(--green); font-size: 12px; letter-spacing: 2px; font-weight: 600; }
+  header.doc h1 { font-size: 26px; font-weight: 600; margin: 6px 0 10px; }
+  header.doc p { color: var(--text-dim); font-size: 13px; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;
+  }
+  .meta span {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 999px; padding: 2px 12px; font-size: 12px; color: var(--text-dim);
+  }
+  section { margin-bottom: 44px; }
+  h2 {
+    font-size: 18px; font-weight: 600; margin-bottom: 4px;
+    padding-left: 10px; border-left: 3px solid var(--green);
+  }
+  .sub { color: var(--text-faint); font-size: 12.5px; margin-bottom: 16px; padding-left: 13px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; overflow-x: auto;
+  }
+  svg { display: block; width: 100%; height: auto; }
+  pre {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; font-size: 12px; line-height: 1.55; color: var(--text-dim);
+    font-family: Cascadia Code, Consolas, monospace; overflow-x: auto;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--text-faint); font-weight: 500; font-size: 12px; }
+  td.pain { color: #f09595; }
+  td.opp { color: var(--green); }
+  tr:last-child td { border-bottom: none; }
+  .tag {
+    display: inline-block; font-size: 11px; border-radius: 4px; padding: 0 6px;
+    margin-right: 6px; font-weight: 600;
+  }
+  .tag.done { background: rgba(151,196,89,.15); color: var(--green); }
+  .tag.wip { background: rgba(239,159,39,.15); color: var(--amber); }
+  footer { color: var(--text-faint); font-size: 12px; border-top: 1px solid var(--border); padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="kicker">WATERMELON SCIENCE · 西瓜小课堂</div>
+  <h1>项目架构图 与 用户体验地图</h1>
+  <p>数据来源：静态代码分析（Assets/Scripts、Assets/Editor、tools/）+ Unity MCP 运行时实测（MCPForUnity 127.0.0.1:8081，execute_code 遍历场景）。Unity 编辑器处于 Play 模式，场景为实时快照。</p>
+  <div class="meta">
+    <span>Unity 2022.3.34f1c1</span>
+    <span>UGGUI 单场景 · 124 个 GameObject</span>
+    <span>5 个运行时脚本 + 1 个编辑器工具</span>
+    <span>Canvas 1920×1080 · match 0.5</span>
+    <span>Windows Standalone x64</span>
+    <span>生成日期 2026-10-16</span>
+  </div>
+</header>
+
+<section>
+  <h2>一、项目架构图</h2>
+  <p class="sub">五层结构：编辑器工具层生成并装配场景，控制层驱动 UI 状态，数据与素材层提供内容，平台层承载运行。</p>
+  <div class="card">
+  <svg viewBox="0 0 680 620" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+    <title>西瓜小课堂项目架构图</title>
+    <desc>五层架构：编辑器工具层、运行时场景层、控制层、数据与素材层、平台与依赖层</desc>
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <rect x="40" y="16" width="600" height="78" rx="12" fill="#412402" stroke="#ef9f27" stroke-width="0.5"/>
+    <text x="56" y="37" font-size="13" font-weight="500" fill="#fac775" dominant-baseline="central">编辑器工具层（仅编辑器环境）</text>
+    <text x="56" y="57" font-size="11" fill="#ef9f27" dominant-baseline="central">WatermelonProjectSetup · 菜单 Watermelon Science &gt; Create Phase 2 Prototype</text>
+    <text x="56" y="75" font-size="11" fill="#ef9f27" dominant-baseline="central">幂等重建：AssetDatabase.Refresh → 删除旧根对象 → 程序化生成 124 个节点 → 保存场景</text>
+
+    <line x1="340" y1="98" x2="340" y2="110" stroke="#b4b2a9" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="352" y="104" font-size="11" fill="#b4b2a9" dominant-baseline="central">生成并装配</text>
+
+    <rect x="40" y="114" width="600" height="152" rx="12" fill="#042c53" stroke="#85b7eb" stroke-width="0.5"/>
+    <text x="56" y="137" font-size="13" font-weight="500" fill="#b5d4f4" dominant-baseline="central">运行时 · 单场景 SampleScene.unity（124 个 GameObject · Play 模式实测）</text>
+
+    <rect x="56" y="150" width="168" height="100" rx="8" fill="#0c447c" stroke="#85b7eb" stroke-width="0.5"/>
+    <text x="68" y="169" font-size="12" font-weight="500" fill="#b5d4f4" dominant-baseline="central">WatermelonClassroom 根</text>
+    <text x="68" y="188" font-size="11" fill="#85b7eb" dominant-baseline="central">Canvas · Overlay 渲染</text>
+    <text x="68" y="205" font-size="11" fill="#85b7eb" dominant-baseline="central">Scaler 1920×1080</text>
+    <text x="68" y="222" font-size="11" fill="#85b7eb" dominant-baseline="central">match 0.5 · Raycaster</text>
+    <text x="68" y="239" font-size="11" fill="#85b7eb" dominant-baseline="central">+ 2 个导航控制器</text>
+
+    <rect x="232" y="150" width="180" height="100" rx="8" fill="#0c447c" stroke="#85b7eb" stroke-width="0.5"/>
+    <text x="244" y="169" font-size="12" font-weight="500" fill="#b5d4f4" dominant-baseline="central">HomePanel · 首页</text>
+    <text x="244" y="188" font-size="11" fill="#85b7eb" dominant-baseline="central">Eyebrow / Title / Subtitle</text>
+    <text x="244" y="205" font-size="11" fill="#85b7eb" dominant-baseline="central">ModuleCard_1~4 主题卡片</text>
+    <text x="244" y="222" font-size="11" fill="#85b7eb" dominant-baseline="central">ExitButton 退出程序</text>
+    <text x="244" y="239" font-size="11" fill="#85b7eb" dominant-baseline="central">DecorativeWatermelon 浮动</text>
+
+    <rect x="420" y="150" width="204" height="100" rx="8" fill="#0c447c" stroke="#85b7eb" stroke-width="0.5"/>
+    <text x="432" y="169" font-size="12" font-weight="500" fill="#b5d4f4" dominant-baseline="central">ModulePanel_1~4 · 互斥显隐</text>
+    <text x="432" y="188" font-size="11" fill="#85b7eb" dominant-baseline="central">_1 认识西瓜 · _2 生长过程</text>
+    <text x="432" y="205" font-size="11" fill="#85b7eb" dominant-baseline="central">_3 营养知识 · _4 占位页</text>
+    <text x="432" y="222" font-size="11" fill="#85b7eb" dominant-baseline="central">BackButton ×4 返回首页</text>
+    <text x="432" y="239" font-size="11" fill="#85b7eb" dominant-baseline="central">EventSystem + InputModule</text>
+
+    <line x1="340" y1="284" x2="340" y2="272" stroke="#b4b2a9" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="352" y="278" font-size="11" fill="#b4b2a9" dominant-baseline="central">onClick → 控制器驱动面板</text>
+
+    <rect x="40" y="288" width="600" height="142" rx="12" fill="#04342c" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="56" y="311" font-size="13" font-weight="500" fill="#9fe1cb" dominant-baseline="central">控制层 · 5 个 MonoBehaviour（Awake 绑定事件 · OnEnable 重置状态）</text>
+
+    <rect x="56" y="324" width="160" height="40" rx="8" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="68" y="338" font-size="12" font-weight="500" fill="#9fe1cb" dominant-baseline="central">MainMenuController</text>
+    <text x="68" y="354" font-size="11" fill="#5dcaa5" dominant-baseline="central">装饰浮动 · 转发导航</text>
+
+    <line x1="220" y1="344" x2="258" y2="344" stroke="#5dcaa5" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="239" y="334" font-size="11" fill="#5dcaa5" text-anchor="middle" dominant-baseline="central">持有引用</text>
+
+    <rect x="264" y="324" width="200" height="40" rx="8" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="276" y="338" font-size="12" font-weight="500" fill="#9fe1cb" dominant-baseline="central">ModuleNavigationController</text>
+    <text x="276" y="354" font-size="11" fill="#5dcaa5" dominant-baseline="central">导航中心 · 面板互斥显隐</text>
+
+    <rect x="476" y="324" width="148" height="40" rx="8" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="488" y="338" font-size="12" font-weight="500" fill="#9fe1cb" dominant-baseline="central">导航状态机</text>
+    <text x="488" y="354" font-size="11" fill="#5dcaa5" dominant-baseline="central">-1 首页 / 0~3 模块</text>
+
+    <rect x="56" y="374" width="185" height="42" rx="8" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="68" y="389" font-size="12" font-weight="500" fill="#9fe1cb" dominant-baseline="central">AnatomyController</text>
+    <text x="68" y="406" font-size="11" fill="#5dcaa5" dominant-baseline="central">视图切换 + 4 结构标签</text>
+
+    <rect x="249" y="374" width="185" height="42" rx="8" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="261" y="389" font-size="12" font-weight="500" fill="#9fe1cb" dominant-baseline="central">GrowthController</text>
+    <text x="261" y="406" font-size="11" fill="#5dcaa5" dominant-baseline="central">四阶段 + 淡入 0.22s</text>
+
+    <rect x="442" y="374" width="182" height="42" rx="8" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="454" y="389" font-size="12" font-weight="500" fill="#9fe1cb" dominant-baseline="central">NutritionController</text>
+    <text x="454" y="406" font-size="11" fill="#5dcaa5" dominant-baseline="central">3 主题 + 比例条</text>
+
+    <line x1="340" y1="446" x2="340" y2="434" stroke="#b4b2a9" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="352" y="441" font-size="11" fill="#b4b2a9" dominant-baseline="central">读取常量数据与素材</text>
+
+    <rect x="40" y="450" width="600" height="88" rx="12" fill="#2c2c2a" stroke="#b4b2a9" stroke-width="0.5"/>
+    <text x="56" y="473" font-size="13" font-weight="500" fill="#d3d1c7" dominant-baseline="central">数据与素材层</text>
+
+    <rect x="56" y="486" width="185" height="40" rx="8" fill="#3a3a37" stroke="#b4b2a9" stroke-width="0.5"/>
+    <text x="68" y="500" font-size="12" font-weight="500" fill="#d3d1c7" dominant-baseline="central">硬编码教学数据</text>
+    <text x="68" y="516" font-size="11" fill="#b4b2a9" dominant-baseline="central">结构/阶段/营养文案与数值</text>
+
+    <rect x="249" y="486" width="185" height="40" rx="8" fill="#3a3a37" stroke="#b4b2a9" stroke-width="0.5"/>
+    <text x="261" y="500" font-size="12" font-weight="500" fill="#d3d1c7" dominant-baseline="central">Assets/Art 插画</text>
+    <text x="261" y="516" font-size="11" fill="#b4b2a9" dominant-baseline="central">6 张 PNG/JPG · PIL 生成</text>
+
+    <rect x="442" y="486" width="182" height="40" rx="8" fill="#3a3a37" stroke="#b4b2a9" stroke-width="0.5"/>
+    <text x="454" y="500" font-size="12" font-weight="500" fill="#d3d1c7" dominant-baseline="central">内置 Arial 字体</text>
+    <text x="454" y="516" font-size="11" fill="#b4b2a9" dominant-baseline="central">OS 动态字体加载</text>
+
+    <rect x="40" y="558" width="600" height="42" rx="12" fill="#26215c" stroke="#afa9ec" stroke-width="0.5"/>
+    <text x="56" y="573" font-size="11" fill="#cecbf6" dominant-baseline="central">平台与依赖：Unity 2022.3.34f1c1 · com.unity.ugui 1.0.0 · TextMeshPro 3.0.6（可用未用）</text>
+    <text x="56" y="591" font-size="11" fill="#afa9ec" dominant-baseline="central">目标平台 Windows Standalone x64 · 单场景 · 无第三方 UI 框架 · tools/ 下 PIL 脚本生成美术资产</text>
+  </svg>
+  </div>
+</section>
+
+<section>
+  <h2>二、类关系与数据流</h2>
+  <p class="sub">所有交互遵循同一条链路：按钮 onClick → 控制器方法 → SetActive / 文本更新 / 颜色更新。无事件总线、无序列化依赖，控制器即状态机。</p>
+  <div class="card">
+  <table>
+    <tr><th style="width:210px">类 / 文件</th><th>职责</th><th style="width:300px">关键成员</th></tr>
+    <tr><td>ModuleNavigationController</td><td>单场景导航状态机，面板互斥显隐、返回首页、退出程序</td><td>homePanel、modulePanels[4]、homeModuleButtons[4]、exitButton、backButtons[4]、currentModule</td></tr>
+    <tr><td>MainMenuController</td><td>首页展示层；装饰西瓜正弦浮动（持有 Nav 引用）</td><td>navigation、decorativeWatermelon、bobAmplitude=7、bobSpeed=1.3</td></tr>
+    <tr><td>WatermelonAnatomyController</td><td>模块 1：完整外形/剖面切换、4 个结构标签与说明</td><td>structureTitles/Bodies、GetStructureColor、SetButtonState</td></tr>
+    <tr><td>WatermelonGrowthController</td><td>模块 2：四阶段导航、边界禁用、插画淡入 0.22s</td><td>stageButtons[4]、prev/next、stageSprites[4]、FadeIn 协程</td></tr>
+    <tr><td>WatermelonNutritionController</td><td>模块 3：水分/糖类/能量主题切换、比例条宽度动画</td><td>titles/values/units/bodies、barWidths、highlightedBar</td></tr>
+    <tr><td>WatermelonProjectSetup（Editor）</td><td>菜单工具，确定性重建整套 UI 并保存场景（幂等）</td><td>CreatePhaseTwoPrototype、CreateAnatomyModule、CreateGrowthModule、CreateNutritionModule、EnsureSprite</td></tr>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>三、运行时 UI 层级树（MCP 实测快照）</h2>
+  <p class="sub">execute_code 遍历 WatermelonClassroom 根对象所得；标注 [inactive] 的节点在当前 Play 快照中未激活。</p>
+<pre>WatermelonClassroom  &lt;Canvas, CanvasScaler, GraphicRaycaster, ModuleNavigationController, MainMenuController&gt;
+  Background  &lt;Image&gt;
+  HomePanel  [inactive]  &lt;Image&gt;
+    Eyebrow / Title / Subtitle  &lt;Text&gt;
+    DecorativeWatermelon  &lt;Image, Outline&gt;  → Rind + Seed ×3
+    DecorativeLabel / ChooseHint  &lt;Text&gt;
+    ModuleCard_1 ~ ModuleCard_4  &lt;Image, Button, Outline&gt;  → Label + Description
+    ExitButton  &lt;Button&gt;
+    Footer  &lt;Text&gt;
+  ModulePanel_1  &lt;WatermelonAnatomyController&gt;
+    DiagramArea → WholeView [inactive] + CrossSectionView（各带 Tip 文本）
+    WholeViewButton / CrossSectionButton / StructureButton_0~3 / BackButton
+    InfoCard → InfoEyebrow / InfoTitle / InfoBody / SelectedHint
+  ModulePanel_2  [inactive]  &lt;WatermelonGrowthController&gt;
+    StageNavCard → StageButton_0~3 + SelectedHint
+    StageDisplayCard → StageNumber / StageTitle / ProgressText
+      StageImage &lt;Image, CanvasGroup&gt;（淡入载体）/ StageBody
+      PrevStageButton / NextStageButton / BackButton
+  ModulePanel_3  [inactive]  &lt;WatermelonNutritionController&gt;
+    MetricCard → NutrientButton_0~2 / NutrientTitle / Value / Unit / Body / SelectedHint
+    ChartCard → ChartLabel_0~2 + ChartTrack_0~2 + HighlightedBar + SourceText
+    BackButton
+  ModulePanel_4  [inactive]  &lt;Image&gt;（占位页：PrototypeBody + ContentPlaceholder）
+    BackButton
+EventSystem（场景级，StandaloneInputModule）</pre>
+</section>
+
+<section>
+  <h2>四、用户体验地图</h2>
+  <p class="sub">主旅程五阶段 + 情绪曲线；下方逐阶段列出行为、触点与痛点/机会。情绪值基于交互反馈密度评估（即时颜色/文本反馈 → 高；无过渡/无音效 → 扣分项）。</p>
+  <div class="card">
+  <svg viewBox="0 0 680 562" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+    <title>西瓜小课堂用户体验地图</title>
+    <desc>五阶段用户旅程：启动进入、首页浏览、选择模块、模块内探索、返回退出，含情绪曲线与痛点机会</desc>
+    <defs>
+      <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <rect x="40" y="16" width="120" height="30" rx="8" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="100" y="31" font-size="12" font-weight="500" fill="#9fe1cb" text-anchor="middle" dominant-baseline="central">1  启动进入</text>
+    <rect x="160" y="16" width="120" height="30" rx="8" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="220" y="31" font-size="12" font-weight="500" fill="#9fe1cb" text-anchor="middle" dominant-baseline="central">2  首页浏览</text>
+    <rect x="280" y="16" width="120" height="30" rx="8" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="340" y="31" font-size="12" font-weight="500" fill="#9fe1cb" text-anchor="middle" dominant-baseline="central">3  选择模块</text>
+    <rect x="400" y="16" width="120" height="30" rx="8" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="460" y="31" font-size="12" font-weight="500" fill="#9fe1cb" text-anchor="middle" dominant-baseline="central">4  模块内探索</text>
+    <rect x="520" y="16" width="120" height="30" rx="8" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="580" y="31" font-size="12" font-weight="500" fill="#9fe1cb" text-anchor="middle" dominant-baseline="central">5  返回 / 退出</text>
+
+    <text x="100" y="60" font-size="11" fill="#b4b2a9" text-anchor="middle" dominant-baseline="central">快速进入课堂</text>
+    <text x="220" y="60" font-size="11" fill="#b4b2a9" text-anchor="middle" dominant-baseline="central">找到兴趣主题</text>
+    <text x="340" y="60" font-size="11" fill="#b4b2a9" text-anchor="middle" dominant-baseline="central">进入选定模块</text>
+    <text x="460" y="60" font-size="11" fill="#b4b2a9" text-anchor="middle" dominant-baseline="central">完成知识探索</text>
+    <text x="580" y="60" font-size="11" fill="#b4b2a9" text-anchor="middle" dominant-baseline="central">换主题或结束</text>
+
+    <line x1="64" y1="76" x2="644" y2="76" stroke="#5f5e5a" stroke-width="0.5"/>
+    <line x1="64" y1="98" x2="644" y2="98" stroke="#5f5e5a" stroke-width="0.5"/>
+    <line x1="64" y1="120" x2="644" y2="120" stroke="#5f5e5a" stroke-width="0.5"/>
+    <text x="56" y="76" font-size="11" fill="#b4b2a9" text-anchor="end" dominant-baseline="central">高</text>
+    <text x="56" y="98" font-size="11" fill="#b4b2a9" text-anchor="end" dominant-baseline="central">中</text>
+    <text x="56" y="120" font-size="11" fill="#b4b2a9" text-anchor="end" dominant-baseline="central">低</text>
+
+    <polyline points="100,98 220,76 340,76 460,67 580,94" fill="none" stroke="#97c459" stroke-width="1.5"/>
+    <circle cx="100" cy="98" r="4.5" fill="#ef9f27"/>
+    <circle cx="220" cy="76" r="4.5" fill="#97c459"/>
+    <circle cx="340" cy="76" r="4.5" fill="#97c459"/>
+    <circle cx="460" cy="67" r="4.5" fill="#97c459"/>
+    <circle cx="580" cy="94" r="4.5" fill="#ef9f27"/>
+    <text x="100" y="114" font-size="11" fill="#ef9f27" text-anchor="middle" dominant-baseline="central">中</text>
+    <text x="220" y="63" font-size="11" fill="#97c459" text-anchor="middle" dominant-baseline="central">高</text>
+    <text x="340" y="63" font-size="11" fill="#97c459" text-anchor="middle" dominant-baseline="central">高</text>
+    <text x="460" y="54" font-size="11" fill="#97c459" text-anchor="middle" dominant-baseline="central">高</text>
+    <text x="580" y="110" font-size="11" fill="#ef9f27" text-anchor="middle" dominant-baseline="central">中</text>
+    <text x="340" y="138" font-size="11" fill="#b4b2a9" text-anchor="middle" dominant-baseline="central">情绪曲线：平稳 → 愉悦 → 愉悦 → 沉浸 → 平稳收尾</text>
+
+    <rect x="40" y="158" width="600" height="62" rx="8" fill="#2c2c2a" stroke="#5f5e5a" stroke-width="0.5"/>
+    <rect x="52" y="168" width="96" height="42" rx="6" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="100" y="182" font-size="12" font-weight="500" fill="#9fe1cb" text-anchor="middle" dominant-baseline="central">1 · 启动进入</text>
+    <text x="100" y="199" font-size="11" fill="#5dcaa5" text-anchor="middle" dominant-baseline="central">快速进入课堂</text>
+    <text x="160" y="178" font-size="11" fill="#e8e6dd" dominant-baseline="central">点击 Play 或运行 Windows 构建</text>
+    <text x="160" y="196" font-size="11" fill="#a9a89e" dominant-baseline="central">触点：SampleScene 自动加载</text>
+    <text x="160" y="214" font-size="11" fill="#a9a89e" dominant-baseline="central">HomePanel 默认激活显示</text>
+    <circle cx="463" cy="184" r="5" fill="#ef9f27"/>
+    <text x="463" y="202" font-size="11" fill="#ef9f27" text-anchor="middle" dominant-baseline="central">中</text>
+    <text x="496" y="182" font-size="11" fill="#f09595" dominant-baseline="central">痛点：无加载过渡动画</text>
+    <text x="496" y="200" font-size="11" fill="#97c459" dominant-baseline="central">机会：首屏淡入+启动页</text>
+
+    <rect x="40" y="226" width="600" height="62" rx="8" fill="#2c2c2a" stroke="#5f5e5a" stroke-width="0.5"/>
+    <rect x="52" y="236" width="96" height="42" rx="6" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="100" y="250" font-size="12" font-weight="500" fill="#9fe1cb" text-anchor="middle" dominant-baseline="central">2 · 首页浏览</text>
+    <text x="100" y="267" font-size="11" fill="#5dcaa5" text-anchor="middle" dominant-baseline="central">找到兴趣主题</text>
+    <text x="160" y="246" font-size="11" fill="#e8e6dd" dominant-baseline="central">阅读标题与副标题，浏览 4 张卡片</text>
+    <text x="160" y="264" font-size="11" fill="#a9a89e" dominant-baseline="central">触点：ModuleCard_1~4</text>
+    <text x="160" y="282" font-size="11" fill="#a9a89e" dominant-baseline="central">装饰西瓜正弦浮动吸引注意</text>
+    <circle cx="463" cy="252" r="5" fill="#97c459"/>
+    <text x="463" y="270" font-size="11" fill="#97c459" text-anchor="middle" dominant-baseline="central">高</text>
+    <text x="496" y="250" font-size="11" fill="#f09595" dominant-baseline="central">痛点：悬停无音效动效</text>
+    <text x="496" y="268" font-size="11" fill="#97c459" dominant-baseline="central">机会：悬停放大 + 音效</text>
+
+    <rect x="40" y="294" width="600" height="62" rx="8" fill="#2c2c2a" stroke="#5f5e5a" stroke-width="0.5"/>
+    <rect x="52" y="304" width="96" height="42" rx="6" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="100" y="318" font-size="12" font-weight="500" fill="#9fe1cb" text-anchor="middle" dominant-baseline="central">3 · 选择模块</text>
+    <text x="100" y="335" font-size="11" fill="#5dcaa5" text-anchor="middle" dominant-baseline="central">进入选定模块</text>
+    <text x="160" y="314" font-size="11" fill="#e8e6dd" dominant-baseline="central">点击主题卡片进入对应模块</text>
+    <text x="160" y="332" font-size="11" fill="#a9a89e" dominant-baseline="central">触点：onClick → ShowModule(i)</text>
+    <text x="160" y="350" font-size="11" fill="#a9a89e" dominant-baseline="central">同时刻仅一个 Panel 可见</text>
+    <circle cx="463" cy="320" r="5" fill="#97c459"/>
+    <text x="463" y="338" font-size="11" fill="#97c459" text-anchor="middle" dominant-baseline="central">高</text>
+    <text x="496" y="318" font-size="11" fill="#f09595" dominant-baseline="central">痛点：切换无过渡动画</text>
+    <text x="496" y="336" font-size="11" fill="#97c459" dominant-baseline="central">机会：面板淡入+占位提示</text>
+
+    <rect x="40" y="362" width="600" height="62" rx="8" fill="#2c2c2a" stroke="#5f5e5a" stroke-width="0.5"/>
+    <rect x="52" y="372" width="96" height="42" rx="6" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="100" y="386" font-size="12" font-weight="500" fill="#9fe1cb" text-anchor="middle" dominant-baseline="central">4 · 模块内探索</text>
+    <text x="100" y="403" font-size="11" fill="#5dcaa5" text-anchor="middle" dominant-baseline="central">完成知识探索</text>
+    <text x="160" y="382" font-size="11" fill="#e8e6dd" dominant-baseline="central">模块1：切换外形/剖面 + 结构标签</text>
+    <text x="160" y="400" font-size="11" fill="#a9a89e" dominant-baseline="central">模块2：四阶段 + 上一步/下一步</text>
+    <text x="160" y="418" font-size="11" fill="#a9a89e" dominant-baseline="central">模块3：水分/糖类/能量比例卡</text>
+    <circle cx="463" cy="388" r="5" fill="#97c459"/>
+    <text x="463" y="406" font-size="11" fill="#97c459" text-anchor="middle" dominant-baseline="central">高</text>
+    <text x="496" y="386" font-size="11" fill="#f09595" dominant-baseline="central">痛点：无音效与键盘导航</text>
+    <text x="496" y="404" font-size="11" fill="#97c459" dominant-baseline="central">机会：快捷键 + 完成奖励</text>
+
+    <rect x="40" y="430" width="600" height="62" rx="8" fill="#2c2c2a" stroke="#5f5e5a" stroke-width="0.5"/>
+    <rect x="52" y="440" width="96" height="42" rx="6" fill="#085041" stroke="#5dcaa5" stroke-width="0.5"/>
+    <text x="100" y="454" font-size="12" font-weight="500" fill="#9fe1cb" text-anchor="middle" dominant-baseline="central">5 · 返回 / 退出</text>
+    <text x="100" y="471" font-size="11" fill="#5dcaa5" text-anchor="middle" dominant-baseline="central">换主题或结束</text>
+    <text x="160" y="450" font-size="11" fill="#e8e6dd" dominant-baseline="central">点击「‹ 返回首页」回到首页</text>
+    <text x="160" y="468" font-size="11" fill="#a9a89e" dominant-baseline="central">触点：BackButton → ShowHome</text>
+    <text x="160" y="486" font-size="11" fill="#a9a89e" dominant-baseline="central">OnEnable 重置模块状态；或退出</text>
+    <circle cx="463" cy="456" r="5" fill="#ef9f27"/>
+    <text x="463" y="474" font-size="11" fill="#ef9f27" text-anchor="middle" dominant-baseline="central">中</text>
+    <text x="496" y="454" font-size="11" fill="#f09595" dominant-baseline="central">痛点：返回后状态重置</text>
+    <text x="496" y="472" font-size="11" fill="#97c459" dominant-baseline="central">机会：进度记忆与确认</text>
+
+    <rect x="40" y="502" width="600" height="40" rx="10" fill="#26215c" stroke="#afa9ec" stroke-width="0.5"/>
+    <text x="56" y="517" font-size="11" fill="#cecbf6" dominant-baseline="central">关键数据：124 个 GameObject · 5 个运行时脚本 · 4 个面板 · 24 个按钮 · 6 张美术资产 · 0 网络依赖</text>
+    <text x="56" y="533" font-size="11" fill="#afa9ec" dominant-baseline="central">设计原则：即时反馈 · 状态可重置 · 1920×1080 自适应 · 单场景零加载切换</text>
+  </svg>
+  </div>
+</section>
+
+<section>
+  <h2>五、痛点与机会汇总</h2>
+  <p class="sub">按优先级排列；P0 影响核心教学闭环，P1 影响体验完整度。</p>
+  <div class="card">
+  <table>
+    <tr><th style="width:52px">优先级</th><th style="width:270px">痛点</th><th>机会 / 建议</th></tr>
+    <tr><td><span class="tag wip">P1</span></td><td class="pain">模块 4「挑选西瓜」仍为占位页，用户点击后期待落空</td><td class="opp">补「即将上线」状态提示，或按阶段计划实现挑选小游戏</td></tr>
+    <tr><td><span class="tag wip">P1</span></td><td class="pain">面板切换无过渡动画，首页与模块间跳转生硬</td><td class="opp">为 Panel 显隐加 CanvasGroup 淡入淡出（生长模块已有 0.22s 淡入可复用）</td></tr>
+    <tr><td><span class="tag wip">P1</span></td><td class="pain">再进入模块时状态重置，无进度记忆</td><td class="opp">在控制器中记住 currentStage / selectedStructure，返回首页不清空</td></tr>
+    <tr><td><span class="tag done">P2</span></td><td class="pain">无任何音效与悬停动效，反馈仅限颜色与文本</td><td class="opp">按钮悬停缩放 + 点击音效；结构/阶段切换加轻微高亮过渡</td></tr>
+    <tr><td><span class="tag done">P2</span></td><td class="pain">无键盘导航，全部交互必须用鼠标</td><td class="opp">方向键切换阶段/主题，Esc 返回首页，Tab 焦点高亮</td></tr>
+    <tr><td><span class="tag done">P2</span></td><td class="pain">退出程序无确认，误点即关闭</td><td class="opp">退出前加确认弹窗；构建版展示时长/学习小结</td></tr>
+  </table>
+  </div>
+</section>
+
+<footer>
+  <p>生成方式：WorkBuddy + Unity MCP（MCPForUnity，execute_code · codedom）。架构图基于 2026-10-16 Play 模式实时快照与源码分析；后续若运行「Watermelon Science &gt; Create Phase 2 Prototype」重建 UI，层级可能变化，需重新生成。</p>
+</footer>
+
+</div>
+</body>
+</html>
