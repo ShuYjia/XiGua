@@ -225,7 +225,8 @@ public class WatermelonGiftPanel : MonoBehaviour
         RectTransform card = Box(transform, "GiftCard", 0, 0, 1400, 960, Paper, true);
         Label(card, "Title", 0, 420, 1200, 58, "礼品兑换", 40, DeepGreen, TextAnchor.MiddleCenter, true);
         balanceText = Label(card, "Balance", 0, 370, 1200, 44, "", 26, DeepGreen, TextAnchor.MiddleCenter, true);
-        Label(card, "DemoNotice", 0, 315, 1280, 62, DemoNotice, 18, Red, TextAnchor.MiddleCenter);
+        // 演示说明放在卡片底部作脚注：原先 y=315 会与左右两栏栏目标题（y=320）处在同一行而重叠
+        Label(card, "DemoNotice", 0, -370, 1280, 36, DemoNotice, 16, Red, TextAnchor.MiddleCenter);
 
         BuildCatalog(card);
         BuildForm(card);
