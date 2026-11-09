@@ -39,16 +39,24 @@ public static class WatermelonProjectSetup
         canvasRect.localPosition = Vector3.zero;
         canvas.pixelPerfect = false;
         CanvasScaler scaler = root.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 1080);
-        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-        scaler.matchWidthOrHeight = 0.5f;
+        // 统一 1920x1080 设计基准：缩放只由 CanvasScaler(Expand) 做一次
+        WatermelonResolution.EnsureCanvasScaler(scaler);
         root.AddComponent<GraphicRaycaster>();
 
-        GameObject background = CreateImage("Background", root.transform, Cream, Stretch());
+        // 非 16:9 时铺满逻辑画布，形成内容区之外的背景留白
+        GameObject aspectBackground = CreateImage("AspectBackground", root.transform, Cream, Stretch());
+        aspectBackground.transform.SetAsFirstSibling();
+
+        // 固定 1920x1080 内容根节点；1920x1080 下与逻辑画布完全重合，画面不变
+        GameObject aspectRoot = new GameObject("ClassroomAspectRoot", typeof(RectTransform));
+        aspectRoot.transform.SetParent(root.transform, false);
+        WatermelonResolution.ApplyAspectFit((RectTransform)aspectRoot.transform);
+        Transform contentRoot = aspectRoot.transform;
+
+        GameObject background = CreateImage("Background", contentRoot, Cream, Stretch());
         background.transform.SetAsFirstSibling();
 
-        GameObject home = CreatePanel("HomePanel", root.transform, Cream, Stretch());
+        GameObject home = CreatePanel("HomePanel", contentRoot, Cream, Stretch());
         CreateText("Eyebrow", home.transform, "NATURE LAB  ·  2D SCIENCE CLASS", 20, DeepGreen, new Vector2(0, 385), new Vector2(1200, 45), TextAnchor.MiddleCenter, FontStyle.Bold);
         CreateText("Title", home.transform, "西瓜小课堂", 92, DeepGreen, new Vector2(0, 285), new Vector2(1200, 125), TextAnchor.MiddleCenter, FontStyle.Bold);
         CreateText("Subtitle", home.transform, "探索一颗西瓜的科学奥秘", 30, Ink, new Vector2(0, 205), new Vector2(1100, 55), TextAnchor.MiddleCenter, FontStyle.Normal);
@@ -60,7 +68,7 @@ public static class WatermelonProjectSetup
         CreateSeed(melon.transform, new Vector2(-38, 22), -20f);
         CreateSeed(melon.transform, new Vector2(0, 45), 5f);
         CreateSeed(melon.transform, new Vector2(36, 18), 24f);
-        CreateText("DecorativeLabel", home.transform, "一起来发现\n甜蜜里的科学", 22, White, new Vector2(270, -12), new Vector2(230, 100), TextAnchor.MiddleCenter, FontStyle.Bold);
+        CreateText("DecorativeLabel", home.transform, "一起来发现\n甜蜜里的科学", 22, DeepGreen, new Vector2(270, -300), new Vector2(230, 100), TextAnchor.MiddleCenter, FontStyle.Bold);
 
         CreateText("ChooseHint", home.transform, "选择一个主题，开始探索", 24, DeepGreen, new Vector2(0, 100), new Vector2(800, 45), TextAnchor.MiddleCenter, FontStyle.Bold);
 
@@ -75,15 +83,16 @@ public static class WatermelonProjectSetup
             CreateText("Description", card.transform, descriptions[i], 18, Ink, new Vector2(0, -47), new Vector2(290, 55), TextAnchor.MiddleCenter, FontStyle.Normal);
             moduleButtons[i] = card.GetComponent<Button>();
         }
-        Button exitButton = CreateButton("ExitButton", home.transform, "退出程序", DeepGreen, new RectSpec(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 70), new Vector2(210, 58)), 20, White).GetComponent<Button>();
+        Button exitButton = CreateButton("ExitButton", home.transform, "退出程序", DeepGreen, new RectSpec(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 88), new Vector2(210, 58)), 20, White).GetComponent<Button>();
         GameObject homeFooter = CreateText("Footer", home.transform, "Windows PC  ·  单场景交互原型", 17, new Color32(92, 111, 96, 255), new Vector2(0, 25), new Vector2(600, 35), TextAnchor.MiddleCenter, FontStyle.Normal);
         AnchorBottomCenter(homeFooter, 25f);
 
         GameObject[] modules = new GameObject[4];
         Button[] backs = new Button[4];
+        Button[] subgameEntryButtons = new Button[4];
         for (int i = 0; i < modules.Length; i++)
         {
-            modules[i] = CreatePanel("ModulePanel_" + (i + 1), root.transform, Cream, Stretch());
+            modules[i] = CreatePanel("ModulePanel_" + (i + 1), contentRoot, Cream, Stretch());
             modules[i].SetActive(false);
             CreateText("ModuleIndex", modules[i].transform, labels[i].Substring(0, 2), 24, FleshRed, new Vector2(-690, 420), new Vector2(120, 45), TextAnchor.MiddleLeft, FontStyle.Bold);
             CreateText("ModuleTitle", modules[i].transform, labels[i].Substring(4), 62, DeepGreen, new Vector2(0, 330), new Vector2(1300, 90), TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -93,7 +102,8 @@ public static class WatermelonProjectSetup
             }
             else if (i == 1)
             {
-                CreateGrowthModule(modules[i], out WatermelonGrowthController growth);
+                CreateGrowthModule(modules[i], out WatermelonGrowthController growth, out Button farmEntry);
+                subgameEntryButtons[i] = farmEntry;
             }
             else if (i == 2)
             {
@@ -101,10 +111,8 @@ public static class WatermelonProjectSetup
             }
             else
             {
-                CreateText("PrototypeBody", modules[i].transform, "这里将放置该主题的互动科普内容。\n阶段三已完成认识西瓜模块，后续阶段替换为真实图文、数据卡片和小游戏。", 28, Ink, new Vector2(0, 50), new Vector2(1100, 180), TextAnchor.MiddleCenter, FontStyle.Normal);
-                GameObject contentCard = CreateImage("ContentPlaceholder", modules[i].transform, White, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -170), new Vector2(820, 180)));
-                AddOutline(contentCard, accents[i], 4f);
-                CreateText("ContentHint", contentCard.transform, i == 1 ? "四阶段生长时间线" : i == 2 ? "营养数字卡片与图表" : "三种教学样本与观察依据", 23, DeepGreen, Vector2.zero, new Vector2(760, 90), TextAnchor.MiddleCenter, FontStyle.Bold);
+                CreateCutModule(modules[i], out Button cutEntry);
+                subgameEntryButtons[i] = cutEntry;
             }
             backs[i] = CreateButton("BackButton", modules[i].transform, "‹  返回首页", DeepGreen, new RectSpec(new Vector2(0, 0), new Vector2(0, 0), new Vector2(155, 75), new Vector2(240, 62)), 20, White).GetComponent<Button>();
             GameObject moduleFooter = CreateText("ModuleFooter", modules[i].transform, "Watermelon Science  ·  教学原型", 16, new Color32(92, 111, 96, 255), new Vector2(0, 25), new Vector2(600, 35), TextAnchor.MiddleCenter, FontStyle.Normal);
@@ -120,6 +128,24 @@ public static class WatermelonProjectSetup
         MainMenuController menu = root.AddComponent<MainMenuController>();
         menu.navigation = navigation;
         menu.decorativeWatermelon = melon.GetComponent<RectTransform>();
+
+        // 场景路由：显式引用导航与两个子游戏入口按钮，不做对象名查找
+        SubgameSceneRouter router = root.AddComponent<SubgameSceneRouter>();
+        router.navigation = navigation;
+        router.farmEntryButton = subgameEntryButtons[SubgameSceneRouter.FarmReturnModule];
+        router.cutEntryButton = subgameEntryButtons[SubgameSceneRouter.CutReturnModule];
+
+        // 常驻右上 HUD：统一西瓜币余额 + 礼品兑换入口（不属于四个首页入口）
+        Text currencyText = CreateText("CurrencyBalance", contentRoot, "西瓜币 0", 22, DeepGreen,
+            new Vector2(610, 440), new Vector2(300, 48), TextAnchor.MiddleRight, FontStyle.Bold).GetComponent<Text>();
+        Button giftButton = CreateButton("GiftRedeemButton", contentRoot, "礼品兑换", WatermelonGreen,
+            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                         new Vector2(790, 385), new Vector2(200, 56)), 20, White).GetComponent<Button>();
+        WatermelonCurrencyHUD hud = root.AddComponent<WatermelonCurrencyHUD>();
+        hud.balanceText = currencyText;
+        hud.giftButton = giftButton;
+        hud.panelParent = contentRoot;
+        hud.Refresh();
 
         Selection.activeGameObject = root;
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
@@ -173,7 +199,7 @@ public static class WatermelonProjectSetup
         anatomy.selectedHint = selectedHint;
     }
 
-    private static void CreateGrowthModule(GameObject module, out WatermelonGrowthController growth)
+    private static void CreateGrowthModule(GameObject module, out WatermelonGrowthController growth, out Button farmEntry)
     {
         CreateText("GrowthGuide", module.transform, "一颗西瓜，从种子到成熟果实的四步旅程", 20, new Color32(92, 111, 96, 255), new Vector2(0, 252), new Vector2(900, 42), TextAnchor.MiddleCenter, FontStyle.Normal);
 
@@ -230,6 +256,33 @@ public static class WatermelonProjectSetup
         growth.stageBody = stageBody;
         growth.progressText = progressText;
         growth.selectedHint = selectedHint;
+
+        // 原有四阶段图文全部保留；在模块标题右侧新增独立的农场玩法入口
+        farmEntry = CreateButton("FarmEntryButton", module.transform, "进入瓜田农场  ›", DeepGreen,
+            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(700, 420), new Vector2(240, 56)),
+            19, White).GetComponent<Button>();
+        CreateText("FarmEntryHint", module.transform, "独立养成玩法 · 完成后可返回本模块", 13,
+            new Color32(92, 111, 96, 255), new Vector2(700, 386), new Vector2(300, 28), TextAnchor.MiddleCenter, FontStyle.Normal);
+    }
+
+    private static void CreateCutModule(GameObject module, out Button cutEntry)
+    {
+        CreateText("CutGuide", module.transform, "观察瓜底颜色、瓜柄与拍瓜声，挑出成熟适口的一颗", 20,
+            new Color32(92, 111, 96, 255), new Vector2(0, 258), new Vector2(1000, 42), TextAnchor.MiddleCenter, FontStyle.Normal);
+
+        GameObject introCard = CreateImage("CutIntroCard", module.transform, White,
+            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 5), new Vector2(900, 420)));
+        AddOutline(introCard, new Color32(255, 213, 196, 255), 3f);
+        CreateText("CutEyebrow", introCard.transform, "独立挑瓜游戏", 19, FleshRed,
+            new Vector2(0, 160), new Vector2(400, 34), TextAnchor.MiddleCenter, FontStyle.Bold);
+        CreateText("CutTitle", introCard.transform, "挑瓜挑战", 44, DeepGreen,
+            new Vector2(0, 105), new Vector2(600, 62), TextAnchor.MiddleCenter, FontStyle.Bold);
+        CreateText("CutBody", introCard.transform,
+            "进入《瓜里有数》：四步教学、九瓜自由观察、五项观察记录、\n选择依据校验、切瓜评分与换一篮重玩。\n游戏内点“返回课堂”可回到本模块。",
+            20, Ink, new Vector2(0, 20), new Vector2(820, 110), TextAnchor.MiddleCenter, FontStyle.Normal);
+        cutEntry = CreateButton("StartCutButton", introCard.transform, "开始挑瓜", FleshRed,
+            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -130), new Vector2(320, 70)),
+            26, White).GetComponent<Button>();
     }
 
     private static void CreateNutritionModule(GameObject module, out WatermelonNutritionController nutrition)
@@ -406,12 +459,10 @@ public static class WatermelonProjectSetup
     private static void AnchorBottomCenter(GameObject go, float bottomOffset)
     {
         RectTransform rt = go.GetComponent<RectTransform>();
-        // The project uses a centered full-screen canvas. Keep the footer centered
-        // horizontally and offset it relative to the canvas center so it stays
-        // below the content at the reference 1920x1080 resolution.
-        rt.anchorMin = new Vector2(0.5f, 0.5f);
-        rt.anchorMax = new Vector2(0.5f, 0.5f);
-        rt.anchoredPosition = new Vector2(0f, -500f);
+        // 底部居中：锚定画布底边并按像素偏移，避免在不同分辨率下与“退出程序”按钮重叠
+        rt.anchorMin = new Vector2(0.5f, 0f);
+        rt.anchorMax = new Vector2(0.5f, 0f);
+        rt.anchoredPosition = new Vector2(0f, bottomOffset);
     }
 
     private readonly struct RectSpec
