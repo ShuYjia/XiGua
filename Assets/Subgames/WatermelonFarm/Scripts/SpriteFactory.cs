@@ -91,7 +91,13 @@ namespace WatermelonFarm
         public static Color C(string hex)
         {
             Color c;
-            ColorUtility.TryParseHtmlString(hex, out c);
+            if (!ColorUtility.TryParseHtmlString(hex, out c)) return c;
+            // 纸感博物风统一入口：Farm 的全部 UI 色在此降饱和并轻微偏暖纸色。
+            // 只调色彩，保留原有明度与状态色之间的相对关系；玩法数值与状态语义不变。
+            float gray = (c.r + c.g + c.b) / 3f;
+            c.r = Mathf.Lerp(gray, c.r, 0.78f) * 0.995f;
+            c.g = Mathf.Lerp(gray, c.g, 0.78f) * 0.988f;
+            c.b = Mathf.Lerp(gray, c.b, 0.78f) * 0.965f;
             return c;
         }
 

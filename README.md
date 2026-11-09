@@ -111,8 +111,29 @@ git checkout <commit>  # 回滚到某个版本
 
 - 子游戏内容来源：`Assets/Subgames/WatermelonFarm/` 与 `Assets/Subgames/WatermelonCut/` 的玩法、数值、文案、美术与字体均来自用户提供的 `WatermelonFarmUnity` 与 `watermelon cut` 源工程，导入时保留原有 `Resources` 相对路径、资源与 `.meta`；源工程本身未被修改。用户提供的调研 Markdown / PDF 仅作为视觉与知识参考，未按网页版式重写主工程。
 - 子工程插图、照片与字体的授权/来源信息以各自源工程及其文档为准；本整合未新增未经核实的事实或数据。
-- `Assets/Art/watermelon_whole.png`、`Assets/Art/watermelon_cross_section.png`：本项目程序生成的教学插画（扁平风，认识西瓜模块使用）。
-- `Assets/Art/growth_stage1_germination.png`（种子萌发）、`growth_stage2_seedling.png`（幼苗生长）、`growth_stage3_flowering.png`（开花授粉）：本项目程序生成的教学插画，由 `tools/generate_growth_art.py`（Python + Pillow，3 倍超采样抗锯齿）绘制，画风与上述插画统一；重新生成：`python tools/generate_growth_art.py`。
-- `Assets/Art/growth_stage4_mature.jpg`（果实发育与成熟，完整整瓜照片）：CC0 1.0 公共领域贡献作品。来源：rawpixel（经 Openverse 检索），作者 Scott Webb，原图页 https://www.rawpixel.com/image/430495/free-photo-image-watermelon-pink-agriculture ，许可 https://creativecommons.org/publicdomain/zero/1.0/ 。已下载为本地文件导入 Unity，运行时不依赖网络。
-- 全部图片均保存在 `Assets/` 下并在 Unity 中设为 Sprite（`preserveAspect` 开启），不依赖运行时网络加载。如后续替换为外部图片，应继续保存在 `Assets/` 子目录，并在本 README 记录来源和授权信息。
+## 主课堂实物图与纸感博物风（2026-11-10）
+
+本轮把原先的程序绘制扁平插画全部替换为**真实摄影照片**，装饰层改用 19 世纪公共领域植物图谱；**未使用任何 AI 生成图**。照片下载后只做确定性处理：按容器比例居中裁切 → 饱和度 0.86 → 对比度 1.05 → 与暖纸色 `#F7ECD2` 按 10% 混合，统一色调但不重绘。`tools/generate_growth_art.py` 保留为历史生成脚本，已不再产出在用素材。
+
+| 本地文件 | 用途 | 原图 / 作者 | 许可 |
+| --- | --- | --- | --- |
+| `Assets/Art/watermelon_whole.png` | 认识西瓜·完整外形 | [DFC 6158 Sweet summer ready to slice](https://commons.wikimedia.org/wiki/File:DFC_6158_Sweet_summer_ready_to_slice_-_ripe_watermelons_on_display_one_halved_to_reveal_its_juicy_red_flesh.jpg) · PattayaPatrol | CC BY-SA 4.0 |
+| `Assets/Art/watermelon_cross_section.png` | 认识西瓜·剖面（四结构引线标注） | [Water melon c.s.jpg](https://commons.wikimedia.org/wiki/File:Water_melon_c.s.jpg) · Santhoshkumares1971 | CC BY-SA 4.0 |
+| `Assets/Art/growth_stage1_germination.png` | 生长 1 · 种子萌发 | [09889jfCandaba Swamps...](https://commons.wikimedia.org/wiki/File:09889jfCandaba_Swamps_Roads_Baliuag_Agustin_Paligui_Pampangafvf_18.JPG) · Judgefloro | Public domain |
+| `Assets/Art/growth_stage2_seedling.png` | 生长 2 · 幼苗生长 | [Starr-090810-4155 Citrullus lanatus seedling](https://commons.wikimedia.org/wiki/File:Starr-090810-4155-Citrullus_lanatus-seedling-Olinda-Maui_%2824341422344%29.jpg) · Forest and Kim Starr | CC BY 3.0 US |
+| `Assets/Art/growth_stage3_flowering.png` | 生长 3 · 开花授粉 | [Flor de Melância, Watermelon Flower image 2](https://commons.wikimedia.org/wiki/File:Flor_de_Mel%C3%A2ncia,_Watermelon_Flower_image_2_%28S%C3%A3o_Lu%C3%ADs_-_Brazil%29.JPG) · Micael 106 | CC BY 3.0 |
+| `Assets/Art/growth_stage4_mature.jpg` | 生长 4 · 果实发育与成熟 | [rawpixel / Scott Webb](https://www.rawpixel.com/image/430495/free-photo-image-watermelon-pink-agriculture)，原图页见链接 | CC0 1.0 |
+| `Assets/Art/home_card_01.png` | 首页卡 01 认识西瓜 | 同 `watermelon_whole.png` | CC BY-SA 4.0 |
+| `Assets/Art/home_card_02.png` | 首页卡 02 生长过程 | 同 `growth_stage2_seedling.png` | CC BY 3.0 US |
+| `Assets/Art/home_card_03.png` | 首页卡 03 营养知识 | [Immature watermelon half.jpg](https://commons.wikimedia.org/wiki/File:Immature_watermelon_half.jpg) · Downtowngal | CC BY-SA 3.0 |
+| `Assets/Art/home_card_04.png` | 首页卡 04 挑选西瓜 | [Melon and watermelon market 05.jpg](https://commons.wikimedia.org/wiki/File:Melon_and_watermelon_market_05.jpg) · Mirzoulugʻbek | CC0 |
+| `Assets/Art/select_hero.png` | 模块 4 实物主视觉 | 同 `home_card_04.png` | CC0 |
+| `Assets/Art/paper_botanical_bg.png` | 全场景纸感底纹 | [Fuchs 1543 草本](https://commons.wikimedia.org/wiki/File:Citrullen_Fuchs_1543_692.jpg) · Albert Meyer；[Adolphe Millot 图版](https://commons.wikimedia.org/wiki/File:Adolphe_Millot_legume_et_plante_potageres-pour_tous_pasteque.jpg)；[川原慶賀「スイカ」](https://commons.wikimedia.org/wiki/File:Citrullus_lanatus_%E3%82%B9%E3%82%A4%E3%82%AB.jpg) · Kawahara Keiga | 均 Public domain |
+
+- `growth_stage4_mature.jpg` 原图为 [CC0 1.0 公共领域贡献作品](https://creativecommons.org/publicdomain/zero/1.0/)（rawpixel，经 Openverse 检索，作者 Scott Webb）。本轮仅做统一裁切与调色，来源与授权不变。
+- `paper_botanical_bg.png` 由上述三张历史图谱低浓度合成，均为真实历史印刷品扫描件，非 AI 生成、非现代矢量插画。
+- **许可说明**：CC BY-SA 4.0 / 3.0 素材需署名并遵守相同方式共享，CC BY 3.0 / 3.0 US 素材需署名，Public domain / CC0 素材无署名义务；上表作者与原图页即为署名信息。本项目为教学原型，未对原图做裁切与整体调色之外的再创作。
+- **字体**：主课堂复用 `Assets/Subgames/WatermelonCut/Resources/Fonts/` 下已有的 `KaiTi.ttf`（大标题）与 `HeiTi.ttf`（正文），未新增字体资产；来源与授权沿用 Cut 源工程。
+- **Farm 对齐**：`Assets/Subgames/WatermelonFarm/Resources/Art/photo_*.png` 三张实拍照按同一套调色参数处理，路径与 `.meta` 保持不变；`SpriteFactory.C(string hex)` 作为 Farm 全部 UI 颜色的唯一入口统一降饱和并轻微偏暖，保留状态色相对关系与全部玩法数值。Cut 子游戏未改动，它是本次纸感基调的来源。
+- 全部图片保存在 `Assets/` 下并设为 Sprite；照片按容器比例精确裁切，`preserveAspect` 关闭，不留白也不拉伸，运行时不依赖网络加载。后续替换外部图片请继续保存在 `Assets/` 子目录并在此记录来源与授权。
 

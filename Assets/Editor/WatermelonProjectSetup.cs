@@ -9,18 +9,35 @@ using UnityEngine.UI;
 /// </summary>
 public static class WatermelonProjectSetup
 {
-    private static readonly Color Cream = new Color32(255, 248, 232, 255);
-    private static readonly Color DeepGreen = new Color32(24, 91, 62, 255);
-    private static readonly Color WatermelonGreen = new Color32(100, 183, 91, 255);
-    private static readonly Color PaleGreen = new Color32(226, 245, 208, 255);
-    private static readonly Color FleshRed = new Color32(239, 107, 94, 255);
-    private static readonly Color Ink = new Color32(37, 54, 45, 255);
+    // 纸感博物风统一色板：纸白 / 墨绿 / 收敛的瓜绿 / 砖红瓜瓤 / 墨色文字
+    private static readonly Color Cream = new Color32(247, 242, 231, 255);
+    private static readonly Color Card = new Color32(252, 249, 240, 255);
+    private static readonly Color DeepGreen = new Color32(24, 78, 56, 255);
+    private static readonly Color WatermelonGreen = new Color32(74, 122, 84, 255);
+    private static readonly Color PaleGreen = new Color32(230, 237, 217, 255);
+    private static readonly Color FleshRed = new Color32(178, 74, 62, 255);
+    private static readonly Color Ink = new Color32(48, 52, 44, 255);
+    private static readonly Color Muted = new Color32(118, 120, 105, 255);
+    private static readonly Color Rule = new Color32(214, 206, 184, 255);
     private static readonly Color White = new Color32(255, 255, 255, 255);
+
+    // 复用 Cut 子游戏内已导入的完整中文字体，不新增字体资产
+    private const string KaiFontPath = "Assets/Subgames/WatermelonCut/Resources/Fonts/KaiTi.ttf";
+    private const string HeiFontPath = "Assets/Subgames/WatermelonCut/Resources/Fonts/HeiTi.ttf";
+    private static Font titleFont;
+    private static Font bodyFont;
+
+    private static void LoadFonts()
+    {
+        titleFont = AssetDatabase.LoadAssetAtPath<Font>(KaiFontPath);
+        bodyFont = AssetDatabase.LoadAssetAtPath<Font>(HeiFontPath);
+    }
 
     [MenuItem("Watermelon Science/Create Phase 2 Prototype")]
     public static void CreatePhaseTwoPrototype()
     {
         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+        LoadFonts();
         GameObject existing = GameObject.Find("WatermelonClassroom");
         if (existing != null) Object.DestroyImmediate(existing);
 
@@ -43,8 +60,9 @@ public static class WatermelonProjectSetup
         WatermelonResolution.EnsureCanvasScaler(scaler);
         root.AddComponent<GraphicRaycaster>();
 
-        // 非 16:9 时铺满逻辑画布，形成内容区之外的背景留白
+        // 非 16:9 时铺满逻辑画布，形成内容区之外的背景留白（统一纸感底纹）
         GameObject aspectBackground = CreateImage("AspectBackground", root.transform, Cream, Stretch());
+        AssignSprite(aspectBackground, "Assets/Art/paper_botanical_bg.png");
         aspectBackground.transform.SetAsFirstSibling();
 
         // 固定 1920x1080 内容根节点；1920x1080 下与逻辑画布完全重合，画面不变
@@ -54,37 +72,43 @@ public static class WatermelonProjectSetup
         Transform contentRoot = aspectRoot.transform;
 
         GameObject background = CreateImage("Background", contentRoot, Cream, Stretch());
+        AssignSprite(background, "Assets/Art/paper_botanical_bg.png");
         background.transform.SetAsFirstSibling();
 
-        GameObject home = CreatePanel("HomePanel", contentRoot, Cream, Stretch());
+        // 面板本身保持透明，让底层纸感图谱透上来
+        GameObject home = CreatePanel("HomePanel", contentRoot, new Color(0f, 0f, 0f, 0f), Stretch());
         CreateText("Eyebrow", home.transform, "NATURE LAB  ·  2D SCIENCE CLASS", 20, DeepGreen, new Vector2(0, 385), new Vector2(1200, 45), TextAnchor.MiddleCenter, FontStyle.Bold);
         CreateText("Title", home.transform, "西瓜小课堂", 92, DeepGreen, new Vector2(0, 285), new Vector2(1200, 125), TextAnchor.MiddleCenter, FontStyle.Bold);
         CreateText("Subtitle", home.transform, "探索一颗西瓜的科学奥秘", 30, Ink, new Vector2(0, 205), new Vector2(1100, 55), TextAnchor.MiddleCenter, FontStyle.Normal);
 
-        GameObject melon = CreateImage("DecorativeWatermelon", home.transform, FleshRed, new RectSpec(new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-210, -10), new Vector2(180, 180)));
-        AddOutline(melon, DeepGreen, 5f);
-        GameObject rind = CreateImage("Rind", melon.transform, WatermelonGreen, new RectSpec(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-90, -95), new Vector2(180, 35)));
-        AddOutline(rind, DeepGreen, 3f);
-        CreateSeed(melon.transform, new Vector2(-38, 22), -20f);
-        CreateSeed(melon.transform, new Vector2(0, 45), 5f);
-        CreateSeed(melon.transform, new Vector2(36, 18), 24f);
+        // 右下角改为实拍剖面的标本式小照片框，去掉原来的纯色几何西瓜块
+        GameObject melon = CreateImage("DecorativeWatermelon", home.transform, White,
+            new RectSpec(new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-210, -300), new Vector2(216, 144)));
+        AssignSprite(melon, "Assets/Art/watermelon_cross_section.png");
+        AddOutline(melon, Rule, 2f);
         CreateText("DecorativeLabel", home.transform, "一起来发现\n甜蜜里的科学", 22, DeepGreen, new Vector2(270, -300), new Vector2(230, 100), TextAnchor.MiddleCenter, FontStyle.Bold);
 
         CreateText("ChooseHint", home.transform, "选择一个主题，开始探索", 24, DeepGreen, new Vector2(0, 100), new Vector2(800, 45), TextAnchor.MiddleCenter, FontStyle.Bold);
 
         string[] labels = { "01  认识西瓜", "02  生长过程", "03  营养知识", "04  挑选西瓜" };
         string[] descriptions = { "从外形到内部结构", "看见一颗瓜的成长", "水分、糖类与能量", "用观察依据做选择" };
-        Color[] accents = { PaleGreen, new Color32(229, 239, 198, 255), new Color32(255, 231, 180, 255), new Color32(255, 213, 196, 255) };
+        string[] cardArt =
+        {
+            "Assets/Art/home_card_01.png",
+            "Assets/Art/home_card_02.png",
+            "Assets/Art/home_card_03.png",
+            "Assets/Art/home_card_04.png"
+        };
         Button[] moduleButtons = new Button[4];
         for (int i = 0; i < labels.Length; i++)
         {
             float x = -570 + i * 380;
-            GameObject card = CreateButton("ModuleCard_" + (i + 1), home.transform, labels[i], accents[i], new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(x, -105), new Vector2(330, 190)), 25, DeepGreen);
-            CreateText("Description", card.transform, descriptions[i], 18, Ink, new Vector2(0, -47), new Vector2(290, 55), TextAnchor.MiddleCenter, FontStyle.Normal);
+            GameObject card = CreatePhotoCard("ModuleCard_" + (i + 1), home.transform, cardArt[i], labels[i], descriptions[i],
+                new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(x, -105), new Vector2(330, 190)));
             moduleButtons[i] = card.GetComponent<Button>();
         }
         Button exitButton = CreateButton("ExitButton", home.transform, "退出程序", DeepGreen, new RectSpec(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 88), new Vector2(210, 58)), 20, White).GetComponent<Button>();
-        GameObject homeFooter = CreateText("Footer", home.transform, "Windows PC  ·  单场景交互原型", 17, new Color32(92, 111, 96, 255), new Vector2(0, 25), new Vector2(600, 35), TextAnchor.MiddleCenter, FontStyle.Normal);
+        GameObject homeFooter = CreateText("Footer", home.transform, "Windows PC  ·  单场景交互原型", 17, Muted, new Vector2(0, 25), new Vector2(600, 35), TextAnchor.MiddleCenter, FontStyle.Normal);
         AnchorBottomCenter(homeFooter, 25f);
 
         GameObject[] modules = new GameObject[4];
@@ -92,7 +116,7 @@ public static class WatermelonProjectSetup
         Button[] subgameEntryButtons = new Button[4];
         for (int i = 0; i < modules.Length; i++)
         {
-            modules[i] = CreatePanel("ModulePanel_" + (i + 1), contentRoot, Cream, Stretch());
+            modules[i] = CreatePanel("ModulePanel_" + (i + 1), contentRoot, new Color(0f, 0f, 0f, 0f), Stretch());
             modules[i].SetActive(false);
             CreateText("ModuleIndex", modules[i].transform, labels[i].Substring(0, 2), 24, FleshRed, new Vector2(-690, 420), new Vector2(120, 45), TextAnchor.MiddleLeft, FontStyle.Bold);
             CreateText("ModuleTitle", modules[i].transform, labels[i].Substring(4), 62, DeepGreen, new Vector2(0, 330), new Vector2(1300, 90), TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -115,7 +139,7 @@ public static class WatermelonProjectSetup
                 subgameEntryButtons[i] = cutEntry;
             }
             backs[i] = CreateButton("BackButton", modules[i].transform, "‹  返回首页", DeepGreen, new RectSpec(new Vector2(0, 0), new Vector2(0, 0), new Vector2(155, 75), new Vector2(240, 62)), 20, White).GetComponent<Button>();
-            GameObject moduleFooter = CreateText("ModuleFooter", modules[i].transform, "Watermelon Science  ·  教学原型", 16, new Color32(92, 111, 96, 255), new Vector2(0, 25), new Vector2(600, 35), TextAnchor.MiddleCenter, FontStyle.Normal);
+            GameObject moduleFooter = CreateText("ModuleFooter", modules[i].transform, "Watermelon Science  ·  教学原型", 16, Muted, new Vector2(0, 25), new Vector2(600, 35), TextAnchor.MiddleCenter, FontStyle.Normal);
             AnchorBottomCenter(moduleFooter, 25f);
         }
 
@@ -155,36 +179,44 @@ public static class WatermelonProjectSetup
 
     private static void CreateAnatomyModule(GameObject module, out WatermelonAnatomyController anatomy)
     {
-        CreateText("AnatomyGuide", module.transform, "点击上方切换视图，再选择右侧结构标签", 20, new Color32(92, 111, 96, 255), new Vector2(0, 258), new Vector2(1000, 42), TextAnchor.MiddleCenter, FontStyle.Normal);
+        CreateText("AnatomyGuide", module.transform, "点击上方切换视图，再选择右侧结构标签", 20, Muted, new Vector2(0, 258), new Vector2(1000, 42), TextAnchor.MiddleCenter, FontStyle.Normal);
 
-        GameObject diagramArea = CreateImage("DiagramArea", module.transform, PaleGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-345, -35), new Vector2(720, 510)));
-        AddOutline(diagramArea, new Color32(189, 221, 171, 255), 3f);
+        GameObject diagramArea = CreateImage("DiagramArea", module.transform, Card, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-345, -35), new Vector2(720, 510)));
+        AddOutline(diagramArea, Rule, 2f);
         Button wholeButton = CreateButton("WholeViewButton", module.transform, "完整外形", WatermelonGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-515, 205), new Vector2(205, 58)), 20, White).GetComponent<Button>();
         Button crossButton = CreateButton("CrossSectionButton", module.transform, "剖面结构", FleshRed, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-290, 205), new Vector2(205, 58)), 20, White).GetComponent<Button>();
 
-        GameObject wholeView = CreateImage("WholeView", diagramArea.transform, White, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 12), new Vector2(510, 350)));
+        // 照片按 3:2 精确裁切，容器同比例，不留白也不拉伸
+        GameObject wholeView = CreateImage("WholeView", diagramArea.transform, White, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 12), new Vector2(540, 360)));
         AssignSprite(wholeView, "Assets/Art/watermelon_whole.png");
+        AddOutline(wholeView, Rule, 2f);
         GameObject wholeTip = CreateText("WholeTip", diagramArea.transform, "观察：绿色外皮是西瓜最外层的保护结构", 18, DeepGreen, new Vector2(0, -208), new Vector2(600, 45), TextAnchor.MiddleCenter, FontStyle.Normal);
 
-        GameObject crossView = CreateImage("CrossSectionView", diagramArea.transform, White, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 12), new Vector2(510, 350)));
+        GameObject crossView = CreateImage("CrossSectionView", diagramArea.transform, White, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 12), new Vector2(540, 360)));
         AssignSprite(crossView, "Assets/Art/watermelon_cross_section.png");
+        AddOutline(crossView, Rule, 2f);
+        // 实物剖面上的四个结构引线标注，随剖面视图一起显隐
+        AddLeaderMark(crossView.transform, new Vector2(-160, 20), new Vector2(-195, 125), "果皮", WatermelonGreen);
+        AddLeaderMark(crossView.transform, new Vector2(-140, -80), new Vector2(-195, -135), "瓜瓤", new Color32(141, 168, 88, 255));
+        AddLeaderMark(crossView.transform, new Vector2(50, 70), new Vector2(180, 125), "果肉", FleshRed);
+        AddLeaderMark(crossView.transform, new Vector2(-25, -55), new Vector2(35, -140), "种子", new Color32(88, 65, 44, 255));
         GameObject crossTip = CreateText("CrossTip", diagramArea.transform, "观察：切开后可以看到不同层次与种子分布", 18, DeepGreen, new Vector2(0, -208), new Vector2(600, 45), TextAnchor.MiddleCenter, FontStyle.Normal);
         crossView.SetActive(false);
         crossTip.SetActive(false);
 
-        GameObject infoCard = CreateImage("InfoCard", module.transform, White, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(395, -35), new Vector2(540, 510)));
-        AddOutline(infoCard, new Color32(232, 220, 190, 255), 3f);
+        GameObject infoCard = CreateImage("InfoCard", module.transform, Card, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(395, -35), new Vector2(540, 510)));
+        AddOutline(infoCard, Rule, 2f);
         CreateText("InfoEyebrow", infoCard.transform, "结构小档案", 18, FleshRed, new Vector2(0, 205), new Vector2(460, 35), TextAnchor.MiddleCenter, FontStyle.Bold);
         Text infoTitle = CreateText("InfoTitle", infoCard.transform, "果皮", 38, DeepGreen, new Vector2(0, 158), new Vector2(460, 60), TextAnchor.MiddleCenter, FontStyle.Bold).GetComponent<Text>();
         Text infoBody = CreateText("InfoBody", infoCard.transform, "", 20, Ink, new Vector2(0, 86), new Vector2(450, 90), TextAnchor.MiddleCenter, FontStyle.Normal).GetComponent<Text>();
         Button[] structureButtons = new Button[4];
         string[] structures = { "果皮  ·  绿色保护层", "果肉  ·  西瓜红可食部", "种子  ·  深褐色胚体", "瓜瓤  ·  浅绿色连接层" };
-        Color[] structureColors = { new Color32(53, 128, 74, 255), new Color32(239, 102, 87, 255), new Color32(88, 65, 44, 255), new Color32(141, 192, 81, 255) };
+        Color[] structureColors = { WatermelonGreen, FleshRed, new Color32(88, 65, 44, 255), new Color32(141, 168, 88, 255) };
         for (int i = 0; i < structures.Length; i++)
         {
-            structureButtons[i] = CreateButton("StructureButton_" + i, infoCard.transform, structures[i], i == 0 ? structureColors[i] : new Color32(236, 240, 222, 255), new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 10 - i * 62), new Vector2(430, 50)), 17, i == 0 ? White : DeepGreen).GetComponent<Button>();
+            structureButtons[i] = CreateButton("StructureButton_" + i, infoCard.transform, structures[i], i == 0 ? structureColors[i] : PaleGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 10 - i * 62), new Vector2(430, 50)), 17, i == 0 ? White : DeepGreen).GetComponent<Button>();
         }
-        Text selectedHint = CreateText("SelectedHint", infoCard.transform, "当前视图：完整外形", 16, new Color32(92, 111, 96, 255), new Vector2(0, -218), new Vector2(460, 32), TextAnchor.MiddleCenter, FontStyle.Normal).GetComponent<Text>();
+        Text selectedHint = CreateText("SelectedHint", infoCard.transform, "当前视图：完整外形", 16, Muted, new Vector2(0, -218), new Vector2(460, 32), TextAnchor.MiddleCenter, FontStyle.Normal).GetComponent<Text>();
 
         anatomy = module.AddComponent<WatermelonAnatomyController>();
         anatomy.wholeView = wholeView;
@@ -201,11 +233,11 @@ public static class WatermelonProjectSetup
 
     private static void CreateGrowthModule(GameObject module, out WatermelonGrowthController growth, out Button farmEntry)
     {
-        CreateText("GrowthGuide", module.transform, "一颗西瓜，从种子到成熟果实的四步旅程", 20, new Color32(92, 111, 96, 255), new Vector2(0, 252), new Vector2(900, 42), TextAnchor.MiddleCenter, FontStyle.Normal);
+        CreateText("GrowthGuide", module.transform, "一颗西瓜，从种子到成熟果实的四步旅程", 20, Muted, new Vector2(0, 252), new Vector2(900, 42), TextAnchor.MiddleCenter, FontStyle.Normal);
 
         // Left: four-stage navigation card
-        GameObject navCard = CreateImage("StageNavCard", module.transform, White, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-520, -100), new Vector2(400, 640)));
-        AddOutline(navCard, new Color32(232, 220, 190, 255), 3f);
+        GameObject navCard = CreateImage("StageNavCard", module.transform, Card, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-520, -100), new Vector2(400, 640)));
+        AddOutline(navCard, Rule, 2f);
         CreateText("NavHeader", navCard.transform, "生长阶段", 24, DeepGreen, new Vector2(0, 245), new Vector2(300, 45), TextAnchor.MiddleCenter, FontStyle.Bold);
 
         string[] stages = { "种子萌发", "幼苗生长", "开花授粉", "果实发育与成熟" };
@@ -215,15 +247,15 @@ public static class WatermelonProjectSetup
         {
             buttons[i] = CreateButton("StageButton_" + i, navCard.transform, "0" + (i + 1) + "   " + stages[i], i == 0 ? FleshRed : PaleGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, navRows[i]), new Vector2(330, 84)), 20, i == 0 ? White : DeepGreen).GetComponent<Button>();
         }
-        Text selectedHint = CreateText("SelectedHint", navCard.transform, "已选择阶段：种子萌发", 17, new Color32(92, 111, 96, 255), new Vector2(0, -240), new Vector2(340, 80), TextAnchor.MiddleCenter, FontStyle.Normal).GetComponent<Text>();
+        Text selectedHint = CreateText("SelectedHint", navCard.transform, "已选择阶段：种子萌发", 17, Muted, new Vector2(0, -240), new Vector2(340, 80), TextAnchor.MiddleCenter, FontStyle.Normal).GetComponent<Text>();
 
-        // Right: main stage display card
-        GameObject displayCard = CreateImage("StageDisplayCard", module.transform, PaleGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(330, -100), new Vector2(1000, 640)));
-        AddOutline(displayCard, new Color32(189, 221, 171, 255), 3f);
+        // 纸底卡片 + 独立照片框：照片不再压在浅绿底上被冲淡
+        GameObject displayCard = CreateImage("StageDisplayCard", module.transform, Card, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(330, -100), new Vector2(1000, 660)));
+        AddOutline(displayCard, Rule, 2f);
 
-        Text stageNumber = CreateText("StageNumber", displayCard.transform, "01", 42, FleshRed, new Vector2(-430, 245), new Vector2(100, 50), TextAnchor.MiddleCenter, FontStyle.Bold).GetComponent<Text>();
-        Text stageTitle = CreateText("StageTitle", displayCard.transform, stages[0], 40, DeepGreen, new Vector2(-160, 245), new Vector2(420, 50), TextAnchor.MiddleLeft, FontStyle.Bold).GetComponent<Text>();
-        Text progressText = CreateText("ProgressText", displayCard.transform, "阶段 1 / 4", 20, new Color32(92, 111, 96, 255), new Vector2(320, 247), new Vector2(250, 45), TextAnchor.MiddleRight, FontStyle.Normal).GetComponent<Text>();
+        Text stageNumber = CreateText("StageNumber", displayCard.transform, "01", 42, FleshRed, new Vector2(-430, 275), new Vector2(100, 50), TextAnchor.MiddleCenter, FontStyle.Bold).GetComponent<Text>();
+        Text stageTitle = CreateText("StageTitle", displayCard.transform, stages[0], 40, DeepGreen, new Vector2(-160, 275), new Vector2(420, 50), TextAnchor.MiddleLeft, FontStyle.Bold).GetComponent<Text>();
+        Text progressText = CreateText("ProgressText", displayCard.transform, "阶段 1 / 4", 20, Muted, new Vector2(320, 277), new Vector2(250, 45), TextAnchor.MiddleRight, FontStyle.Normal).GetComponent<Text>();
 
         Sprite[] stageSprites =
         {
@@ -233,11 +265,13 @@ public static class WatermelonProjectSetup
             EnsureSprite("Assets/Art/growth_stage4_mature.jpg")
         };
 
-        GameObject stageImage = CreateImage("StageImage", displayCard.transform, White, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 55), new Vector2(790, 300)));
+        // 阶段图统一裁为 2.4:1，容器同比例；细边形成标本照片框
+        GameObject stageImage = CreateImage("StageImage", displayCard.transform, White, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 55), new Vector2(840, 350)));
+        AddOutline(stageImage, Rule, 2f);
         stageImage.AddComponent<CanvasGroup>();
         Image stageImageComponent = stageImage.GetComponent<Image>();
         stageImageComponent.sprite = stageSprites[0];
-        stageImageComponent.preserveAspect = true;
+        stageImageComponent.preserveAspect = false;
 
         Text stageBody = CreateText("StageBody", displayCard.transform, "", 20, Ink, new Vector2(0, -165), new Vector2(880, 90), TextAnchor.UpperLeft, FontStyle.Normal).GetComponent<Text>();
 
@@ -258,59 +292,73 @@ public static class WatermelonProjectSetup
         growth.selectedHint = selectedHint;
 
         // 原有四阶段图文全部保留；在模块标题右侧新增独立的农场玩法入口
+        // 下移到标题行右侧，避开右上角常驻的西瓜币 HUD 与礼品兑换按钮
         farmEntry = CreateButton("FarmEntryButton", module.transform, "进入瓜田农场  ›", DeepGreen,
-            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(700, 420), new Vector2(240, 56)),
+            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(700, 290), new Vector2(240, 56)),
             19, White).GetComponent<Button>();
         CreateText("FarmEntryHint", module.transform, "独立养成玩法 · 完成后可返回本模块", 13,
-            new Color32(92, 111, 96, 255), new Vector2(700, 386), new Vector2(300, 28), TextAnchor.MiddleCenter, FontStyle.Normal);
+            Muted, new Vector2(700, 252), new Vector2(300, 28), TextAnchor.MiddleCenter, FontStyle.Normal);
     }
 
     private static void CreateCutModule(GameObject module, out Button cutEntry)
     {
         CreateText("CutGuide", module.transform, "观察瓜底颜色、瓜柄与拍瓜声，挑出成熟适口的一颗", 20,
-            new Color32(92, 111, 96, 255), new Vector2(0, 258), new Vector2(1000, 42), TextAnchor.MiddleCenter, FontStyle.Normal);
+            Muted, new Vector2(0, 258), new Vector2(1000, 42), TextAnchor.MiddleCenter, FontStyle.Normal);
 
-        GameObject introCard = CreateImage("CutIntroCard", module.transform, White,
-            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 5), new Vector2(900, 420)));
-        AddOutline(introCard, new Color32(255, 213, 196, 255), 3f);
+        GameObject introCard = CreateImage("CutIntroCard", module.transform, Card,
+            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-250, 5), new Vector2(560, 420)));
+        AddOutline(introCard, Rule, 2f);
         CreateText("CutEyebrow", introCard.transform, "独立挑瓜游戏", 19, FleshRed,
             new Vector2(0, 160), new Vector2(400, 34), TextAnchor.MiddleCenter, FontStyle.Bold);
         CreateText("CutTitle", introCard.transform, "挑瓜挑战", 44, DeepGreen,
-            new Vector2(0, 105), new Vector2(600, 62), TextAnchor.MiddleCenter, FontStyle.Bold);
+            new Vector2(0, 105), new Vector2(500, 62), TextAnchor.MiddleCenter, FontStyle.Bold);
         CreateText("CutBody", introCard.transform,
             "进入《瓜里有数》：四步教学、九瓜自由观察、五项观察记录、\n选择依据校验、切瓜评分与换一篮重玩。\n游戏内点“返回课堂”可回到本模块。",
-            20, Ink, new Vector2(0, 20), new Vector2(820, 110), TextAnchor.MiddleCenter, FontStyle.Normal);
+            18, Ink, new Vector2(0, 0), new Vector2(500, 140), TextAnchor.MiddleCenter, FontStyle.Normal);
         cutEntry = CreateButton("StartCutButton", introCard.transform, "开始挑瓜", FleshRed,
-            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -130), new Vector2(320, 70)),
-            26, White).GetComponent<Button>();
+            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -145), new Vector2(280, 64)),
+            24, White).GetComponent<Button>();
+
+        // 右侧实物主视觉：市场瓜堆实拍照 + 纸白图注，补足原本整页的大片空白
+        GameObject hero = CreateImage("SelectHero", module.transform, White,
+            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(350, 5), new Vector2(560, 420)));
+        AssignSprite(hero, "Assets/Art/select_hero.png");
+        AddOutline(hero, Rule, 2f);
+        GameObject heroCaption = CreateImage("HeroCaption", hero.transform, Card,
+            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -180), new Vector2(560, 60)));
+        heroCaption.GetComponent<Image>().raycastTarget = false;
+        GameObject heroCaptionText = CreateText("HeroCaptionText", heroCaption.transform,
+            "从瓜田到瓜摊 · 用观察依据挑一颗好瓜", 16, DeepGreen,
+            Vector2.zero, new Vector2(520, 50), TextAnchor.MiddleCenter, FontStyle.Normal);
+        heroCaptionText.GetComponent<Text>().raycastTarget = false;
     }
 
     private static void CreateNutritionModule(GameObject module, out WatermelonNutritionController nutrition)
     {
-        CreateText("NutritionGuide", module.transform, "每 100 g 可食部的教学数据，点击卡片查看重点", 20, new Color32(92, 111, 96, 255), new Vector2(0, 258), new Vector2(1000, 42), TextAnchor.MiddleCenter, FontStyle.Normal);
-        GameObject metricCard = CreateImage("MetricCard", module.transform, White, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-400, -25), new Vector2(440, 450)));
-        AddOutline(metricCard, new Color32(232, 220, 190, 255), 3f);
+        CreateText("NutritionGuide", module.transform, "每 100 g 可食部的教学数据，点击卡片查看重点", 20, Muted, new Vector2(0, 258), new Vector2(1000, 42), TextAnchor.MiddleCenter, FontStyle.Normal);
+        GameObject metricCard = CreateImage("MetricCard", module.transform, Card, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-400, -25), new Vector2(440, 450)));
+        AddOutline(metricCard, Rule, 2f);
         Button[] nutrientButtons = new Button[3];
         string[] names = { "水分", "糖类", "能量" };
-        for (int i = 0; i < 3; i++) nutrientButtons[i] = CreateButton("NutrientButton_" + i, metricCard.transform, names[i], i == 0 ? FleshRed : new Color32(255, 231, 180, 255), new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-135 + i * 135, 150), new Vector2(115, 50)), 17, i == 0 ? White : DeepGreen).GetComponent<Button>();
+        for (int i = 0; i < 3; i++) nutrientButtons[i] = CreateButton("NutrientButton_" + i, metricCard.transform, names[i], i == 0 ? FleshRed : PaleGreen, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-135 + i * 135, 150), new Vector2(115, 50)), 17, i == 0 ? White : DeepGreen).GetComponent<Button>();
         Text nutrientTitle = CreateText("NutrientTitle", metricCard.transform, "水分", 34, DeepGreen, new Vector2(0, 75), new Vector2(360, 55), TextAnchor.MiddleCenter, FontStyle.Bold).GetComponent<Text>();
         Text nutrientValue = CreateText("NutrientValue", metricCard.transform, "约 91.5", 60, FleshRed, new Vector2(0, 5), new Vector2(360, 80), TextAnchor.MiddleCenter, FontStyle.Bold).GetComponent<Text>();
         Text nutrientUnit = CreateText("NutrientUnit", metricCard.transform, "%", 20, Ink, new Vector2(0, -50), new Vector2(360, 40), TextAnchor.MiddleCenter, FontStyle.Normal).GetComponent<Text>();
         Text nutrientBody = CreateText("NutrientBody", metricCard.transform, "", 18, Ink, new Vector2(0, -130), new Vector2(360, 95), TextAnchor.MiddleCenter, FontStyle.Normal).GetComponent<Text>();
-        Text selectedHint = CreateText("SelectedHint", metricCard.transform, "当前主题：水分", 15, new Color32(92, 111, 96, 255), new Vector2(0, -195), new Vector2(360, 30), TextAnchor.MiddleCenter, FontStyle.Normal).GetComponent<Text>();
-        GameObject chartCard = CreateImage("ChartCard", module.transform, new Color32(250, 244, 218, 255), new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(300, -25), new Vector2(620, 450)));
-        AddOutline(chartCard, new Color32(230, 214, 170, 255), 3f);
+        Text selectedHint = CreateText("SelectedHint", metricCard.transform, "当前主题：水分", 15, Muted, new Vector2(0, -195), new Vector2(360, 30), TextAnchor.MiddleCenter, FontStyle.Normal).GetComponent<Text>();
+        GameObject chartCard = CreateImage("ChartCard", module.transform, Card, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(300, -25), new Vector2(620, 450)));
+        AddOutline(chartCard, Rule, 2f);
         CreateText("ChartTitle", chartCard.transform, "相对比例示意", 23, DeepGreen, new Vector2(0, 165), new Vector2(500, 45), TextAnchor.MiddleCenter, FontStyle.Bold);
-        CreateText("ChartHint", chartCard.transform, "用于课堂理解，不代表三项指标同一计量单位", 15, new Color32(92, 111, 96, 255), new Vector2(0, 125), new Vector2(550, 30), TextAnchor.MiddleCenter, FontStyle.Normal);
+        CreateText("ChartHint", chartCard.transform, "用于课堂理解，不代表三项指标同一计量单位", 15, Muted, new Vector2(0, 125), new Vector2(550, 30), TextAnchor.MiddleCenter, FontStyle.Normal);
         string[] chartNames = { "水分", "糖类", "能量" };
         for (int i = 0; i < 3; i++)
         {
             float y = 55 - i * 75;
             CreateText("ChartLabel_" + i, chartCard.transform, chartNames[i], 18, Ink, new Vector2(-230, y), new Vector2(100, 35), TextAnchor.MiddleLeft, FontStyle.Bold);
-            CreateImage("ChartTrack_" + i, chartCard.transform, new Color32(231, 224, 198, 255), new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(45, y), new Vector2(320, 24)));
+            CreateImage("ChartTrack_" + i, chartCard.transform, Rule, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(45, y), new Vector2(320, 24)));
         }
         GameObject highlightedBar = CreateImage("HighlightedBar", chartCard.transform, FleshRed, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-115, 55), new Vector2(320, 24)));
-        Text sourceText = CreateText("SourceText", chartCard.transform, "参考：常见生鲜营养成分表", 14, new Color32(92, 111, 96, 255), new Vector2(0, -175), new Vector2(540, 35), TextAnchor.MiddleCenter, FontStyle.Normal).GetComponent<Text>();
+        Text sourceText = CreateText("SourceText", chartCard.transform, "参考：常见生鲜营养成分表", 14, Muted, new Vector2(0, -175), new Vector2(540, 35), TextAnchor.MiddleCenter, FontStyle.Normal).GetComponent<Text>();
         nutrition = module.AddComponent<WatermelonNutritionController>();
         nutrition.nutrientButtons = nutrientButtons;
         nutrition.nutrientTitle = nutrientTitle;
@@ -371,7 +419,8 @@ public static class WatermelonProjectSetup
         Sprite sprite = EnsureSprite(assetPath);
         Image image = go.GetComponent<Image>();
         image.sprite = sprite;
-        image.preserveAspect = true;
+        image.type = Image.Type.Simple;
+        image.preserveAspect = false;
         image.color = Color.white;
     }
 
@@ -399,7 +448,10 @@ public static class WatermelonProjectSetup
         ApplyRect(rt, new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), position, size));
         Text label = go.GetComponent<Text>();
         label.text = text;
-        label.font = Font.CreateDynamicFontFromOSFont("Arial", fontSize);
+        // 大号粗体标题用楷体，其余用黑体；与 Cut 子游戏统一，回退到系统字体保证可运行
+        bool isTitle = fontSize >= 36 && style == FontStyle.Bold;
+        label.font = (isTitle && titleFont != null) ? titleFont
+                   : (bodyFont != null ? bodyFont : Font.CreateDynamicFontFromOSFont("Arial", fontSize));
         label.fontSize = fontSize;
         label.color = color;
         label.alignment = alignment;
@@ -416,7 +468,9 @@ public static class WatermelonProjectSetup
         ApplyRect(go.GetComponent<RectTransform>(), rect);
         Image image = go.GetComponent<Image>();
         image.color = color;
-        AddOutline(go, new Color(0, 0, 0, 0.08f), 2f);
+        Shadow shadow = go.AddComponent<Shadow>();
+        shadow.effectColor = new Color(0.16f, 0.18f, 0.13f, 0.20f);
+        shadow.effectDistance = new Vector2(2f, -3f);
         Button button = go.GetComponent<Button>();
         ColorBlock colors = button.colors;
         colors.normalColor = color;
@@ -427,6 +481,74 @@ public static class WatermelonProjectSetup
         button.colors = colors;
         CreateText("Label", go.transform, text, fontSize, textColor, Vector2.zero, rect.size - new Vector2(24, 10), TextAnchor.MiddleCenter, FontStyle.Bold);
         return go;
+    }
+
+    /// <summary>
+    /// 首页实物照片卡：照片作为 Button 自身的 Image，保证 hover/press 反馈作用于照片本身。
+    /// </summary>
+    private static GameObject CreatePhotoCard(string name, Transform parent, string assetPath, string label, string description, RectSpec rect)
+    {
+        GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
+        go.transform.SetParent(parent, false);
+        ApplyRect(go.GetComponent<RectTransform>(), rect);
+        Image image = go.GetComponent<Image>();
+        image.sprite = EnsureSprite(assetPath);
+        image.type = Image.Type.Simple;
+        image.preserveAspect = false;
+        image.color = Color.white;
+
+        Shadow shadow = go.AddComponent<Shadow>();
+        shadow.effectColor = new Color(0.16f, 0.18f, 0.13f, 0.28f);
+        shadow.effectDistance = new Vector2(3f, -5f);
+
+        // 上图下注的标本卡：文字落在不透明纸白条上，任何照片下都保持可读
+        GameObject scrim = CreateImage("Scrim", go.transform, new Color(0.08f, 0.12f, 0.09f, 0.16f), Stretch());
+        scrim.GetComponent<Image>().raycastTarget = false;
+        GameObject caption = CreateImage("Caption", go.transform, Card,
+            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -56), new Vector2(330, 78)));
+        caption.GetComponent<Image>().raycastTarget = false;
+
+        GameObject title = CreateText("Label", go.transform, label, 23, DeepGreen,
+            new Vector2(0, -36), new Vector2(300, 34), TextAnchor.MiddleCenter, FontStyle.Bold);
+        title.GetComponent<Text>().raycastTarget = false;
+        GameObject desc = CreateText("Description", go.transform, description, 15, Muted,
+            new Vector2(0, -72), new Vector2(300, 30), TextAnchor.MiddleCenter, FontStyle.Normal);
+        desc.GetComponent<Text>().raycastTarget = false;
+
+        Button button = go.GetComponent<Button>();
+        button.targetGraphic = image;
+        ColorBlock colors = button.colors;
+        colors.normalColor = Color.white;
+        colors.highlightedColor = new Color(0.93f, 0.94f, 0.89f, 1f);
+        colors.pressedColor = new Color(0.80f, 0.82f, 0.76f, 1f);
+        colors.selectedColor = colors.highlightedColor;
+        colors.fadeDuration = 0.12f;
+        button.colors = colors;
+        return go;
+    }
+
+    /// <summary>
+    /// 实拍剖面上的结构引线标注：细引线 + 端点 + 纸色标签，随剖面视图一起显隐。
+    /// </summary>
+    private static void AddLeaderMark(Transform parent, Vector2 point, Vector2 labelPos, string text, Color accent)
+    {
+        Vector2 delta = labelPos - point;
+        GameObject line = CreateImage("Leader", parent, new Color(1f, 1f, 1f, 0.88f),
+            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), (point + labelPos) * 0.5f, new Vector2(delta.magnitude, 1.6f)));
+        line.transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
+        line.GetComponent<Image>().raycastTarget = false;
+
+        GameObject dot = CreateImage("Dot", parent, accent,
+            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), point, new Vector2(11, 11)));
+        dot.GetComponent<Image>().raycastTarget = false;
+        AddOutline(dot, new Color(1f, 1f, 1f, 0.92f), 1.5f);
+
+        GameObject chip = CreateImage("Chip", parent, new Color(0.98f, 0.97f, 0.93f, 0.93f),
+            new RectSpec(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), labelPos, new Vector2(92, 30)));
+        chip.GetComponent<Image>().raycastTarget = false;
+        GameObject chipLabel = CreateText("ChipLabel", chip.transform, text, 15, DeepGreen,
+            Vector2.zero, new Vector2(88, 28), TextAnchor.MiddleCenter, FontStyle.Bold);
+        chipLabel.GetComponent<Text>().raycastTarget = false;
     }
 
     private static void CreateSeed(Transform parent, Vector2 position, float rotation)
