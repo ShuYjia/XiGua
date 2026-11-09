@@ -4,8 +4,8 @@ using UnityEngine.UI;
 /// <summary>
 /// 常驻余额 HUD：主课堂（编辑器期生成）与 Farm / Cut（运行期生成）共用同一个组件。
 /// 订阅统一钱包的 BalanceChanged，保证三处余额始终一致。
-/// 注意：本类必须与文件名同名，否则 Unity 无法为它生成可序列化的 MonoScript 引用，
-/// 编辑器期 AddComponent 后重新加载场景会变成 Missing Script。
+/// 独立成文件便于 Unity 解析组件引用；主课堂由 WatermelonProjectSetup 在编辑器期挂载并接线，
+/// Farm / Cut 则在运行期 AddComponent。
 /// </summary>
 public class WatermelonCurrencyHUD : MonoBehaviour
 {
